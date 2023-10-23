@@ -1,0 +1,6 @@
+#/Server/config/db.js
+#Server/config/db.js
+
+node_modules
+public/uploads/
+.env
