@@ -1,7 +1,7 @@
 const express = require("express");
-const multer =require('multer')
-const path = require('path')
 const verifyToken = require("../middleware/AuthMiddleware");
+const path = require('path')
+const router = express.Router();
 const {
   getProducts, 
   getCategories, 
@@ -26,9 +26,20 @@ const {
   contactMessage
 } = require("../controlers/ProductsControler");
 
-const router = express.Router();
+/************** Firebase**************/
 
-const storage = multer.diskStorage({
+require('dotenv').config();
+const fireb =require('../config/firebase')
+const {initializeApp}= require('firebase/app')
+const multer =require('multer')
+const {getStorage, ref, getDownloadURL, uploadBytesResumable}=require('firebase/storage');
+const {signInWithEmailAndPassword, createUserWithEmailAndPassword}=require('firebase/auth');
+
+initializeApp(fireb.firebaseConfig)
+const storage = getStorage()
+const upload = multer({storage: multer.memoryStorage()})
+
+/*const storage = multer.diskStorage({
   destination: 'public/uploads',
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -37,7 +48,11 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage });*/
+
+//const storage = multer.memoryStorage();
+//const upload = multer({ storage });
+
 // Product Routers
 router.get('/States',getStatus)
 router.post('/sendMessage', contactMessage)

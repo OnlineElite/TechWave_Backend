@@ -19,39 +19,30 @@ async function contactMessage (req, res){
       }
     }
     let transporter = nodemailer.createTransport(config);
-    let MailGenerateur = new Mailgen({
-      theme : 'default',
-      product :{
-        name : userName,
-        link : 'https://mailgen.js'
-      }
-    })
+    // Define the email content
+    const emailContent = `
+    Name: ${userName}
+    Email: ${userEmail}
+    Phone Number: ${userPhoneNumber}
 
-    let response = {
-      body : {
-        name: 'TechWave',
-        intro : 'This is a new contact message',
-        table :{
-          data : [
-            {
-              Name : userName,
-              phone_Number : userPhoneNumber,
-              Message : userMessage
-            }
-          ]
-        },
-        outro : 'Thank you in advance'
-      }
-    }
+    Message:
+    ${userMessage}
 
-    let mail = MailGenerateur.generate(response);
-    let message = {
-      from : userEmail,
-      to : myEmail,
-      subject : 'TechWave Customer Message',
-      html : mail
-    }
-    transporter.sendMail(message).then(()=>{
+    ---
+
+    This is a new contact message. Thank you in advance. `;
+
+    // Set the email subject
+    const emailSubject = 'New TechWave Message';
+
+    // Send the email
+    let email = {
+        text: emailContent,
+        subject: emailSubject,
+        to: myEmail,
+    };
+
+    transporter.sendMail(email).then(()=>{
       return res.status(201).json({message : 'Your message has been sent successfully'})
     }).catch((error)=>{
       return res.status(500).json({error})
@@ -65,21 +56,21 @@ async function contactMessage (req, res){
 
 
 // Product Action
-async function getProducts(req, res) {
+async function getStatus(req, res) {
   try {
-    const Prods = await Product.importProducts();
-
-    res.status(201).json({ products: Prods });
+    const state = await Product.importStatus();
+    res.status(201).json({ states: state });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 }
 
-async function getStatus(req, res) {
+async function getProducts(req, res) {
   try {
-    const state = await Product.importStatus();
-    res.status(201).json({ states: state });
+    const Prods = await Product.importProducts();
+
+    res.status(201).json({ products: Prods });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });

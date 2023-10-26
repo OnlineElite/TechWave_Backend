@@ -1,6 +1,5 @@
 #/Server/config/db.js
 #Server/config/db.js
 
-node_modules
-public/uploads/
-.env
+Server/node_modules
+Server/public/uploads/

@@ -17,12 +17,13 @@ app.use(cors());
 
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+//app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "public")));
 
 
 app.use("/auth", authRoutes);
-app.use("/prod", ProductRoutes);
 app.use("/user",usersRoutes);
+app.use("/prod", ProductRoutes);
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
