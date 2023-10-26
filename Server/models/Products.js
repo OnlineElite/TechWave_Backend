@@ -105,9 +105,15 @@ class Product {
     }
   }
 
-  
-
 class ProductAction {
+
+  // Retrive product image_name
+
+  static async retriveImageName(product_ref){
+    const query = `select image from products where product_ref = ${product_ref}`;
+    const result= await pool.query(query);
+    return result.rows;
+  }
 
   //---Products Action
   static async addProduct(product){

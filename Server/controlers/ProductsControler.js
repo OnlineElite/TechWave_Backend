@@ -79,16 +79,24 @@ async function getProducts(req, res) {
 
 async function AddingProduct(req, res) {
   try {
+    const imageFile = req.file;
+    const image_name = `${uuidv4()}.${imageFile.mimetype.split("/")[1]}`;
+    const imageRef = storageRef.child(`product_images/${image_name}`);
+    const uploadTask = imageRef.put(imageFile.buffer);
 
-    if (req.file){
-      req.body.image = req.file.filename;
-    }
-    
-    await ProductAction.addProduct(req.body);
+    uploadTask.on("state_changed", (snapshot) => {
+      // Calculate the progress percentage
+      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      res.status(200).json({ progress: progress });
+    });
 
-    res
-      .status(201)
-      .json({ message: "Product added successfully", product: req.body });
+    uploadTask.then(async () => {
+      if (req.file){
+        req.body.image = image_name;
+      } 
+      await ProductAction.addProduct(req.body);
+      res.status(201).json({ message: "Product added successfully", product: req.body });
+    })
   } catch (error) {
     console.error(error);
 
@@ -103,6 +111,13 @@ async function AddingProduct(req, res) {
 
 async function DeletingProduct(req, res) {
   try {
+    const { rows } = await ProductAction.retriveImageName(req.body.product_ref)
+    if (rows.length > 0) {
+      const image_name = rows[0].image;
+      const imageRef = storageRef.child(`product_images/${image_name}`);
+      await imageRef.delete();
+    }
+
     await ProductAction.deleteProduct(req.body.product_ref);
     res.status(201).json({ message: "Product deleted successfully" });
   } catch (error) {
@@ -113,17 +128,31 @@ async function DeletingProduct(req, res) {
 
 async function UpdatingProduct(req, res) {
   try {
-    console.log("image ################ ", req.file);
+    const imageFile = req.file;
+    if (imageFile) {
+      const image_name = `${uuidv4()}.${imageFile.mimetype.split("/")[1]}`;
+      const imageRef = storageRef.child(`product_images/${image_name}`);
+      const uploadTask = imageRef.put(imageFile.buffer);
 
-    if (req.file){
-      req.body.image = req.file.filename;
+      uploadTask.on("state_changed", (snapshot) => {
+        // Calculate the progress percentage
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        res.status(200).json({ progress: progress });
+      });
+
+      uploadTask.then(async () => {
+
+        if (req.file){
+          req.body.image = image_name;
+        }
+        if(req.body.image){
+          await ProductAction.updateProductWithImage(req.body);
+        }else{
+          await ProductAction.updateProductWithOutImage(req.body);
+        }
+        res.status(201).json({ message: "Product updated successfully" });
+      })
     }
-    if(req.body.image){
-      await ProductAction.updateProductWithImage(req.body);
-    }else{
-      await ProductAction.updateProductWithOutImage(req.body);
-    }
-    res.status(201).json({ message: "Product updated successfully" });
   } catch (error) {
     console.error(error);
     if (error.code == "LIMIT_FILE_SIZE") {
